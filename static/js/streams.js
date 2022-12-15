@@ -1,15 +1,24 @@
 const APP_ID ='405129d2bcc045cebe849116ce78009d'
-const CHANNEL='main'
-const TOKEN = '007eJxTYNBcuvv7/zM1rqcVE3beWeT35snkiTeChRgDFvDGLedgmu6iwJBkaJCYlmpqkWZpYGmSZGqQZGqYamBgaZlqlpiYYmFqqhw9M7khkJHh9O04RkYGCATxWRhyEzPzGBgAjhIfyA=='
+const CHANNEL=sessionStorage.getItem('room')
+const TOKEN = sessionStorage.getItem('token')
 console.log('stream.js connected asdfasdf;kjasd;lf')
 const client = AgoraRTC.createClient({mode:'rtc',codec:'vp8'})
+let UID =Number(sessionStorage.getItem('UID'))
 let localTracks = []
 let remoteUsers ={}
 
 let joinAndDisplayLocalStream = async ()=>{
+    document.getElementById('room-name').innerText=CHANNEL
     client.on('user-published',handleUserJoined)
     client.on('user-left',handleUserLeft)
-    UID = await client.join(APP_ID,CHANNEL,TOKEN,null)
+    try{
+
+        await client.join(APP_ID,CHANNEL,TOKEN,UID)
+    }
+    catch(error){
+        console.error(error)
+        window.open('/','_self')
+    }
     // console.log(UID)
     localTracks = await AgoraRTC.createMicrophoneAndCameraTracks()
     let player = ` <div class="video-container" id="user-container-${UID}">
@@ -60,5 +69,16 @@ let leaveAndRemoveLocalStream = async()=>{
     window.open('/','_self')
 
 }
+let toggleCamera = async(e)=>{
+    if(localTracks[1].muted){
+        await localTracks[1].setMuted(false)
+        e.target.style.backgroundColor = '#ffff'
+    }
+    else{
+        await localTracks[1].setMuted(true)
+        e.target.style.backgroundColor = 'rgb(255,80,80,1)'
+    }
+}
 joinAndDisplayLocalStream()
 document.getElementById("leave-btn").addEventListener('click',leaveAndRemoveLocalStream)
+document.getElementById("video-btn").addEventListener('click',toggleCamera)
